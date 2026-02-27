@@ -1,0 +1,22 @@
+# Quartus
+db/
+incremental_db/
+output_files/
+simulation/
+
+# Backups
+*.bak
+
+# Waveform
+*.vwf
+*.wlf
+*.vcd
+*.vo
+
+# Quartus project files
+*.qpf
+*.qsf
+*.qdf
+
+# Outros
+transcript
