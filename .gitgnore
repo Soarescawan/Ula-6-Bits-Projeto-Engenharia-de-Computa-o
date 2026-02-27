@@ -1,0 +1,18 @@
+# Quartus
+db/
+incremental_db/
+output_files/
+simulation/
+
+*.qpf
+*.qsf
+*.qdf
+*.vwf
+*.bak
+*.pof
+*.sof
+*.rpt
+*.summary
+*.log
+*.vcd
+*.wlf
