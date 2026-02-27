@@ -1,0 +1,158 @@
+-- Cawan Soares e Gabriel Casali
+
+
+Library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+Entity Ula_6bits is
+    Port(
+        A, B     : in  std_logic_vector(5 downto 0);
+        sel_op   : in  std_logic_vector(3 downto 0);
+        S        : out std_logic_vector(5 downto 0);
+        overflow : out std_logic;
+		  negativoA: out std_logic;
+		  negativoB: out std_logic;
+        negativo : out std_logic;
+        zero     : out std_logic;
+        A_igual_B: out std_logic;
+        A_menor_B: out std_logic
+    );
+end Ula_6bits;
+
+architecture estrutural of Ula_6bits is
+
+
+-- Componentes
+
+
+component somador_subtrator
+    port(
+        X, Y : in std_logic_vector(5 downto 0);
+        somasub : in std_logic;
+        S : out std_logic_vector(5 downto 0);
+        overflow : out std_logic
+    );
+end component;
+
+component incrementador
+    port(
+        X : in std_logic_vector(5 downto 0);
+        S : out std_logic_vector(5 downto 0);
+        overflow : out std_logic
+    );
+end component;
+
+component decrementador
+    port(
+        X : in std_logic_vector(5 downto 0);
+        S : out std_logic_vector(5 downto 0);
+        overflow : out std_logic
+    );
+end component;
+
+component comparador
+    port(
+        A, B : in std_logic_vector(5 downto 0);
+        A_menor_B : out std_logic;
+        A_igual_B : out std_logic
+    );
+end component;
+
+
+-- Sinais internos
+
+
+signal soma_out, sub_out : std_logic_vector(5 downto 0);
+signal inc_out, dec_out  : std_logic_vector(5 downto 0);
+signal or_out, and_out   : std_logic_vector(5 downto 0);
+signal notA_out, notB_out: std_logic_vector(5 downto 0);
+signal shlA_out, shrA_out: std_logic_vector(5 downto 0);
+signal shlB_out, shrB_out: std_logic_vector(5 downto 0);
+
+signal ov_soma, ov_sub, ov_inc, ov_dec, ov_shlA, ov_shlB : std_logic;
+
+signal S_internal : std_logic_vector(5 downto 0);
+
+begin
+
+
+
+-- Soma
+soma: somador_subtrator
+port map (A, B, '0', soma_out, ov_soma);
+
+-- Subtração
+sub: somador_subtrator
+port map (A, B, '1', sub_out, ov_sub);
+
+-- Incremento
+inc: incrementador
+port map (A, inc_out, ov_inc);
+
+-- Decremento
+dec: decrementador
+port map (A, dec_out, ov_dec);
+
+-- Operações lógicas
+or_out  <= A or B;
+and_out <= A and B;
+notA_out <= not A;
+notB_out <= not B;
+
+-- Shifts simples
+ov_shlA <= A(4) xor A(5);
+shlA_out <= A(4 downto 0) & '0';
+shrA_out <= '0' & A(5 downto 1);
+
+ov_shlB <= B(4) xor B(5);
+shlB_out <= B(4 downto 0) & '0';
+shrB_out <= '0' & B(5 downto 1);
+
+-- Comparador
+comp: comparador
+port map (A, B, A_menor_B, A_igual_B);
+
+
+with sel_op select 
+    S_internal <=
+        soma_out  when "0000",
+        sub_out   when "0001",
+        or_out    when "0010",
+        and_out   when "0011",
+        notA_out  when "0100",
+        notB_out  when "0101",
+        shlA_out  when "0110",
+        shrA_out  when "0111",
+        A         when "1000",
+        B         when "1001",
+        shlB_out  when "1010",
+        shrB_out  when "1011",
+        inc_out   when "1100",
+        dec_out   when "1101",
+        "000000"  when others;
+
+S <= S_internal;
+
+
+-- Overflow
+
+
+with sel_op select
+    overflow <=
+        ov_soma when "0000",
+        ov_sub  when "0001",
+        ov_inc  when "1100",
+        ov_dec  when "1101",
+		  ov_shlA when "0110",
+		  ov_shlB when "1010",
+        '0'     when others;
+
+-- Flags
+
+negativoA <= A(5);
+negativoB <= B(5);
+negativo <= S_internal(5);
+
+zero <= '1' when S_internal = "000000" else '0';
+
+end estrutural;
